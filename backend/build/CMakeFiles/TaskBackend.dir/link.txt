@@ -1,1 +1,0 @@
-/usr/bin/c++ -Wl,--dependency-file=CMakeFiles/TaskBackend.dir/link.d CMakeFiles/TaskBackend.dir/main.cpp.o -o TaskBackend  -lpqxx /usr/lib/x86_64-linux-gnu/libxgboost.so -lcurl -lpthread

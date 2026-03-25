@@ -1456,7 +1456,7 @@ print("Тренування Фундаментальної моделі (Hashing
 model = xgb.XGBRegressor(objective='reg:squarederror', n_estimators=200, learning_rate=0.05, max_depth=5)
 model.fit(X_base, y_base)
 
-save_dir = '../backend/build/model'
+save_dir = os.getenv('MODEL_DIR', '../model')
 os.makedirs(save_dir, exist_ok=True)
-model.save_model(os.path.join(save_dir, 'task_estimation_model.json'))
+model.save_model(os.path.join(save_dir, 'foundation_task_estimation_model.json'))
 print("Готово! Модель збережена. Словник більше не потрібен!")

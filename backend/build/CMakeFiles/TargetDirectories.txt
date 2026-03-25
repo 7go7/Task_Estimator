@@ -1,3 +1,0 @@
-/mnt/h/диплом/TaskEstimator/backend/build/CMakeFiles/TaskBackend.dir
-/mnt/h/диплом/TaskEstimator/backend/build/CMakeFiles/edit_cache.dir
-/mnt/h/диплом/TaskEstimator/backend/build/CMakeFiles/rebuild_cache.dir

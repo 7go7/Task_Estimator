@@ -1,17 +1,27 @@
-cmake_minimum_required(VERSION 3.14)
-project(TaskBackend)
+cmake_minimum_required(VERSION 3.16)
+project(task_estimator_backend)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Знаходимо пакети
+find_package(OpenSSL REQUIRED)
+find_package(Threads REQUIRED)
+find_package(CURL REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(PQXX REQUIRED libpqxx)
 
-# Підключаємо XGBoost (або вкажи шлях вручну, якщо не знайде)
-find_library(XGBOOST_LIB xgboost)
+include_directories(${PQXX_INCLUDE_DIRS} /usr/local/include /app/include /app)
+link_directories(${PQXX_LIBRARY_DIRS} /usr/local/lib)
 
-add_executable(TaskBackend main.cpp)
+add_executable(task_estimator_backend
+    src/main.cpp
+)
 
-# Лінкування
-target_link_libraries(TaskBackend PRIVATE ${PQXX_LIBRARIES} ${XGBOOST_LIB} curl pthread)
-target_include_directories(TaskBackend PRIVATE ${PQXX_INCLUDE_DIRS} /usr/local/include)
+target_link_libraries(task_estimator_backend
+    ${PQXX_LIBRARIES}
+    CURL::libcurl
+    OpenSSL::SSL
+    OpenSSL::Crypto
+    Threads::Threads
+    xgboost
+)

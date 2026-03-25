@@ -1,16 +1,70 @@
 services:
   db:
-    image: postgres:15
-    container_name: task_db
+    image: postgres:16
+    container_name: task_estimator_db
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: secretpassword
-      POSTGRES_DB: task_estimator
+      POSTGRES_DB: ${POSTGRES_DB:-task_estimator}
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secretpassword}
     ports:
       - "5432:5432"
     volumes:
-      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
-      - pgdata:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+  trainer:
+    build:
+      context: ./training
+      dockerfile: Dockerfile
+    container_name: task_estimator_trainer
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-secretpassword}@db:5432/${POSTGRES_DB:-task_estimator}
+      MODEL_DIR: /shared-model
+    volumes:
+      - ./model:/shared-model
+      - ./training:/app
+    depends_on:
+      - db
+    command: sh -c "python train_foundation.py && tail -f /dev/null"
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: task_estimator_backend
+    environment:
+      APP_URL: ${APP_URL:-http://localhost:5173}
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}      
+      PORT: ${PORT:-8080}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-task_estimator}
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secretpassword}
+      JIRA_APP_USER_EMAIL: ${JIRA_APP_USER_EMAIL:-}
+      JIRA_APP_API_TOKEN: ${JIRA_APP_API_TOKEN:-}
+      MODEL_DIR: /app/model
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./model:/app/model
+      - ./training:/app/training
+    depends_on:
+      - db
+      - trainer
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: task_estimator_frontend
+    environment:
+      VITE_API_URL: /api
+      VITE_PUBLIC_BASE_URL: ${VITE_PUBLIC_BASE_URL:-}
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
 
 volumes:
-  pgdata:
+  postgres_data:
